@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Supervisor Workers RAG</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <main class="page">
+    <header>
+      <div>
+        <p class="eyebrow">LAB ASSIGNMENT DAY 09</p>
+        <h1>Supervisor <i>orchestrates.</i><br>Workers investigate.</h1>
+      </div>
+      <div class="status"><span></span> Local corpus ready</div>
+    </header>
+
+    <section class="control">
+      <div class="intro">
+        <h2>RAG Investigation Desk</h2>
+        <p>Supervisor phân rã câu hỏi và dispatch ba workers song song để tra cứu luật, tin tức và kiểm chứng nguồn.</p>
+      </div>
+      <div class="form">
+        <textarea id="question">Hình phạt đối với hành vi tàng trữ trái phép chất ma túy và báo chí phản ánh vấn đề này như thế nào?</textarea>
+        <div class="form-footer">
+          <label><input id="useLlm" type="checkbox"> Tổng hợp bằng OpenRouter</label>
+          <button id="run">Bắt đầu phân tích <b>→</b></button>
+        </div>
+      </div>
+    </section>
+
+    <section class="metrics">
+      <div><small>Execution mode</small><strong id="mode">OFFLINE</strong></div>
+      <div><small>Total latency</small><strong id="latency">--</strong></div>
+      <div><small>Evidence found</small><strong id="evidenceCount">0</strong></div>
+      <div><small>Sources</small><strong id="sourceCount">0</strong></div>
+    </section>
+
+    <section class="workspace">
+      <article class="graph-card panel">
+        <div class="heading"><span>01</span><div><small>LIVE GRAPH</small><h3>Agent topology</h3></div></div>
+        <div class="graph" id="graph">
+          <div class="connector vertical one"></div>
+          <div class="connector horizontal"></div>
+          <div class="connector branch left"></div>
+          <div class="connector branch middle"></div>
+          <div class="connector branch right"></div>
+          <div class="connector merge left"></div>
+          <div class="connector merge middle"></div>
+          <div class="connector merge right"></div>
+
+          <div class="node supervisor" data-node="supervisor"><b>S</b><span>Supervisor<small>Planning</small></span><em>Standby</em></div>
+          <div class="node legal" data-node="legal_worker"><b>L</b><span>Legal Worker<small>Legal corpus</small></span><em>Standby</em></div>
+          <div class="node news" data-node="news_worker"><b>N</b><span>News Worker<small>News corpus</small></span><em>Standby</em></div>
+          <div class="node verify" data-node="verification_worker"><b>V</b><span>Verify Worker<small>Source QA</small></span><em>Standby</em></div>
+          <div class="node synth" data-node="synthesizer"><b>Σ</b><span>Synthesizer<small>Citation answer</small></span><em>Standby</em></div>
+        </div>
+      </article>
+
+      <article class="log-card panel">
+        <div class="heading"><span>02</span><div><small>EVENT STREAM</small><h3>Execution log</h3></div></div>
+        <div id="logs" class="logs"><p class="empty">Chưa có workflow nào được chạy.</p></div>
+      </article>
+    </section>
+
+    <section class="results">
+      <article class="panel evidence-panel">
+        <div class="heading"><span>03</span><div><small>WORKER OUTPUT</small><h3>Evidence & warnings</h3></div></div>
+        <div id="tabs" class="tabs"></div>
+        <div id="evidence" class="evidence"><p class="empty">Evidence của workers sẽ xuất hiện tại đây.</p></div>
+      </article>
+
+      <article class="panel answer-panel">
+        <div class="heading"><span>04</span><div><small>FINAL OUTPUT</small><h3>Synthesized answer</h3></div></div>
+        <div id="answer" class="answer"><p class="empty">Câu trả lời cuối sẽ xuất hiện tại đây.</p></div>
+      </article>
+    </section>
+  </main>
+  <script src="/static/app.js"></script>
+</body>
+</html>

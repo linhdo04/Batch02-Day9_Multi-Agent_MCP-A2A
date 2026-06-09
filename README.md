@@ -79,7 +79,8 @@ Codelab hướng dẫn từng bước xây dựng multi-agent system, từ cơ b
 - **[INSTRUCTOR_GUIDE.md](INSTRUCTOR_GUIDE.md)** - Hướng dẫn cho giảng viên
 - **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** - Tài liệu tham khảo nhanh
 - **[exercises/](exercises/)** - Bài tập thực hành với skeleton code
-- **[exercises/SOLUTIONS.md](exercises/SOLUTIONS.md)** - Đáp án chi tiết
+- **[Lab-Solution.md](Lab-Solution.md)** - Đáp án chi tiết
+- **[Lab_Assignment/](Lab_Assignment/)** - Day 8 RAG cải tiến bằng Supervisor–Workers
 
 ### Lộ Trình Học
 

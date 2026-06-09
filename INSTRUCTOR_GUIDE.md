@@ -266,7 +266,7 @@ Vẽ bảng:
 Hỏi sinh viên:
 
 1. **Khi nào dùng single agent vs multi-agent?**
-   - Đáp án: xem `SOLUTIONS.md`
+   - Đáp án: xem `Lab-Solution.md`
 
 2. **A2A khác gì REST/gRPC?**
    - Đáp án: standardized, discovery, tracing built-in
@@ -424,7 +424,7 @@ Nếu cần chấm điểm:
 ## Liên Hệ & Hỗ Trợ
 
 Nếu có vấn đề kỹ thuật trong buổi lab:
-1. Check `SOLUTIONS.md` trước
+1. Check `Lab-Solution.md` trước
 2. Google error message
 3. Hỏi trên Discord/Slack của lớp
 4. Email giảng viên

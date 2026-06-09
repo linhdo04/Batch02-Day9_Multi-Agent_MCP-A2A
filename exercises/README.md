@@ -41,7 +41,7 @@ uv run python exercises/exercise_4_multiagent.py
 
 ## Đáp Án
 
-Đáp án chi tiết có trong file `SOLUTIONS.md`. 
+Đáp án chi tiết có trong file [`../Lab-Solution.md`](../Lab-Solution.md).
 
 **⚠️ Lưu ý:** Hãy cố gắng tự làm trước khi xem đáp án!
 
@@ -110,6 +110,6 @@ Nếu gặp khó khăn:
 1. Đọc lại phần lý thuyết trong `CODELAB.md`
 2. Xem `QUICK_REFERENCE.md` cho syntax
 3. Hỏi bạn bè hoặc giảng viên
-4. Check `SOLUTIONS.md` (last resort!)
+4. Check `Lab-Solution.md` (last resort!)
 
 **Chúc bạn làm bài tốt! 💪**

@@ -305,7 +305,7 @@ Tax Agent    Compliance Agent
 
 - `exercises/exercise_2_tools.py` - Thêm tools và knowledge base
 - `exercises/exercise_4_multiagent.py` - Thêm privacy agent
-- `exercises/SOLUTIONS.md` - Đáp án (xem sau khi làm xong!)
+- `Lab-Solution.md` - Đáp án (xem sau khi làm xong!)
 
 ---
 
