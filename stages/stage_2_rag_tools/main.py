@@ -36,7 +36,13 @@ LEGAL_KNOWLEDGE = [
     },
     {
         "id": "nda_trade_secret",
-        "keywords": ["nda", "non-disclosure", "confidential", "trade secret", "agreement"],
+        "keywords": [
+            "nda",
+            "non-disclosure",
+            "confidential",
+            "trade secret",
+            "agreement",
+        ],
         "text": (
             "NDA breaches may trigger both contractual and statutory liability. Under the Defend "
             "Trade Secrets Act (DTSA, 18 U.S.C. § 1836), misappropriation of trade secrets can "
@@ -71,7 +77,14 @@ LEGAL_KNOWLEDGE = [
     },
     {
         "id": "injunctive_relief",
-        "keywords": ["injunction", "restraining", "order", "equitable", "nda", "breach"],
+        "keywords": [
+            "injunction",
+            "restraining",
+            "order",
+            "equitable",
+            "nda",
+            "breach",
+        ],
         "text": (
             "Courts routinely grant temporary restraining orders (TROs) and preliminary injunctions "
             "for NDA breaches because: (1) confidential information, once disclosed, cannot be "
@@ -81,6 +94,22 @@ LEGAL_KNOWLEDGE = [
             "public interest (Winter v. Natural Resources Defense Council, 2008)."
         ),
     },
+    {
+        "id": "labor_law",
+        "keywords": [
+            "lao động",
+            "sa thải",
+            "hợp đồng lao động",
+            "labor",
+            "termination",
+        ],
+        "text": (
+            "Theo Bộ luật Lao động Việt Nam 2019, người sử dụng lao động có thể "
+            "đơn phương chấm dứt hợp đồng trong các trường hợp: (1) người lao động "
+            "thường xuyên không hoàn thành công việc; (2) bị ốm đau, tai nạn đã điều trị "
+            "12 tháng chưa khỏi; (3) thiên tai, hỏa hoạn; (4) người lao động đủ tuổi nghỉ hưu."
+        ),
+    },
 ]
 
 
@@ -88,13 +117,14 @@ LEGAL_KNOWLEDGE = [
 # Tools
 # ---------------------------------------------------------------------------
 
+
 @tool
 def search_legal_database(query: str) -> str:
     """Search the legal knowledge base for relevant statutes, case law, and legal principles."""
-    query_words = set(query.lower().split())
+    query_lower = query.lower()
     scored = []
     for entry in LEGAL_KNOWLEDGE:
-        overlap = len(query_words & set(entry["keywords"]))
+        overlap = sum(keyword in query_lower for keyword in entry["keywords"])
         if overlap > 0:
             scored.append((overlap, entry))
     scored.sort(key=lambda x: x[0], reverse=True)
@@ -135,9 +165,24 @@ def calculate_damages(breach_type: str, contract_value: float) -> str:
     )
 
 
-TOOLS = [search_legal_database, calculate_damages]
+@tool
+def check_statute_of_limitations(case_type: str) -> str:
+    """Kiểm tra thời hiệu khởi kiện theo loại vụ án.
 
-QUESTION = "What are the legal consequences if a company breaches a non-disclosure agreement?"
+    Args:
+        case_type: Loại vụ án (contract, tort, property).
+    """
+    limits = {
+        "contract": "4 năm (UCC § 2-725)",
+        "tort": "2-3 năm tùy bang",
+        "property": "5 năm",
+    }
+    return limits.get(case_type.lower(), "Không xác định")
+
+
+TOOLS = [search_legal_database, calculate_damages, check_statute_of_limitations]
+
+QUESTION = "What is the statute of limitations for a breach of contract claim?"
 
 
 async def main():
@@ -146,7 +191,10 @@ async def main():
     print("=" * 70)
     print()
     print("[How it works]")
-    print("  1. LLM receives tools (search_legal_database, calculate_damages)")
+    print(
+        "  1. LLM receives tools (search_legal_database, calculate_damages, "
+        "check_statute_of_limitations)"
+    )
     print("  2. LLM decides which tools to call and with what arguments")
     print("  3. We execute the tools and feed results back to the LLM")
     print("  4. LLM generates a final answer grounded in retrieved data")
@@ -164,6 +212,8 @@ async def main():
                 "You are a legal expert with access to a legal knowledge base and a damage "
                 "calculator. Use the tools provided to ground your analysis in specific statutes "
                 "and case law. Always search the database before answering. "
+                "Do not introduce statutes, deadlines, or jurisdiction-specific rules that are "
+                "not present in the tool results. If the retrieved data is insufficient, say so. "
                 "Keep your final response under 400 words."
             )
         ),

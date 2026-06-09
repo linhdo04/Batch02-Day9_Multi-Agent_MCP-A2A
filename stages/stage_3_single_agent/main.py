@@ -96,10 +96,10 @@ def search_legal_database(query: str) -> str:
     Args:
         query: Natural language search query about a legal topic.
     """
-    query_words = set(query.lower().split())
+    query_lower = query.lower()
     scored = []
     for entry in LEGAL_KNOWLEDGE:
-        overlap = len(query_words & set(entry["keywords"]))
+        overlap = sum(keyword in query_lower for keyword in entry["keywords"])
         if overlap > 0:
             scored.append((overlap, entry))
     scored.sort(key=lambda x: x[0], reverse=True)
@@ -172,18 +172,42 @@ def check_compliance_requirements(industry: str, company_size: str) -> str:
     )
 
 
-TOOLS = [search_legal_database, calculate_penalty, check_compliance_requirements]
+@tool
+def search_case_law(keywords: str) -> str:
+    """Tìm kiếm án lệ theo từ khóa.
+
+    Args:
+        keywords: Từ khóa tìm kiếm.
+    """
+    cases = {
+        "breach": "Hadley v. Baxendale (1854) - Consequential damages",
+        "negligence": "Donoghue v. Stevenson (1932) - Duty of care",
+        "contract": "Carlill v. Carbolic Smoke Ball Co (1893) - Unilateral contract",
+    }
+    for key, case in cases.items():
+        if key in keywords.lower():
+            return case
+    return "Không tìm thấy án lệ phù hợp"
+
+
+TOOLS = [
+    search_legal_database,
+    calculate_penalty,
+    check_compliance_requirements,
+    search_case_law,
+]
 
 QUESTION = (
-    "A tech startup with $5M revenue was caught sharing user data without consent "
-    "and failed to pay taxes on overseas revenue. What are all the legal consequences?"
+    "A supplier committed a breach of contract that caused foreseeable downstream losses. "
+    "What remedies and relevant case law apply?"
 )
 
 SYSTEM_PROMPT = (
     "You are a legal analyst agent. You have access to tools for searching legal databases, "
     "calculating penalties, and checking compliance requirements. Use these tools to build "
     "a comprehensive analysis. Search for each legal area separately — data privacy, tax, "
-    "and compliance. Keep your final answer under 500 words."
+    "and compliance. Use search_case_law when the question asks about a legal precedent. "
+    "Keep your final answer under 500 words."
 )
 
 
@@ -205,7 +229,7 @@ async def main():
     print("-" * 70)
 
     llm = get_llm()
-    graph = create_react_agent(model=llm, tools=TOOLS, prompt=SYSTEM_PROMPT)
+    graph = create_react_agent(model=llm, tools=TOOLS, prompt=SYSTEM_PROMPT, debug=True)
 
     inputs = {"messages": [{"role": "user", "content": QUESTION}]}
 

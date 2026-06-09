@@ -4,7 +4,8 @@ Multiple specialised agents collaborate on a complex legal question.
 This mirrors Stage 5's architecture (law_agent/graph.py) but runs
 entirely in-process — no HTTP, no A2A protocol, no separate servers.
 
-Graph: analyze_law -> check_routing -> parallel [call_tax, call_compliance] -> aggregate -> END
+Graph: analyze_law -> check_routing
+       -> parallel [call_tax, call_compliance, privacy_agent] -> aggregate -> END
 """
 
 import asyncio
@@ -19,6 +20,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.tools import tool
 
 from common.llm import get_llm
+from common.prompts import VIETNAMESE_RESPONSE_INSTRUCTION
 
 # ---------------------------------------------------------------------------
 # Tools for specialist sub-agents
@@ -114,8 +116,10 @@ class LegalState(TypedDict):
     law_analysis: str
     needs_tax: bool
     needs_compliance: bool
+    needs_privacy: bool
     tax_result: Annotated[str, _last_wins]
     compliance_result: Annotated[str, _last_wins]
+    privacy_result: Annotated[str, _last_wins]
     final_answer: str
 
 
@@ -133,6 +137,7 @@ async def analyze_law(state: LegalState) -> dict:
                 "You are a senior corporate litigation attorney specialising in contract law, "
                 "tort law, and general business law. Analyse the legal aspects of the question "
                 "thoroughly. Keep your analysis under 200 words."
+                + VIETNAMESE_RESPONSE_INSTRUCTION
             )
         ),
         HumanMessage(content=state["question"]),
@@ -174,8 +179,21 @@ async def check_routing(state: LegalState) -> dict:
 
     needs_tax = bool(parsed.get("needs_tax", True))
     needs_compliance = bool(parsed.get("needs_compliance", True))
-    print(f"  [Node: check_routing] needs_tax={needs_tax}, needs_compliance={needs_compliance}")
-    return {"needs_tax": needs_tax, "needs_compliance": needs_compliance}
+    question_lower = state["question"].lower()
+    needs_privacy = any(
+        keyword in question_lower
+        for keyword in ["data", "privacy", "gdpr", "dữ liệu"]
+    )
+    print(
+        "  [Node: check_routing] "
+        f"needs_tax={needs_tax}, needs_compliance={needs_compliance}, "
+        f"needs_privacy={needs_privacy}"
+    )
+    return {
+        "needs_tax": needs_tax,
+        "needs_compliance": needs_compliance,
+        "needs_privacy": needs_privacy,
+    }
 
 
 def route_to_specialists(state: LegalState) -> list[Send]:
@@ -185,6 +203,8 @@ def route_to_specialists(state: LegalState) -> list[Send]:
         sends.append(Send("call_tax_specialist", state))
     if state.get("needs_compliance"):
         sends.append(Send("call_compliance_specialist", state))
+    if state.get("needs_privacy"):
+        sends.append(Send("privacy_agent", state))
     if not sends:
         sends.append(Send("aggregate", state))
     return sends
@@ -202,6 +222,7 @@ async def call_tax_specialist(state: LegalState) -> dict:
         "tax evasion vs. avoidance, IRS enforcement, penalties under IRC §§ 6651/6662/6663, "
         "FBAR/FATCA requirements, and tax fraud statutes (18 U.S.C. § 7201-7207). "
         "Use the search_tax_law tool to ground your analysis. Keep your response under 200 words."
+        + VIETNAMESE_RESPONSE_INSTRUCTION
     )
 
     llm = get_llm()
@@ -224,6 +245,7 @@ async def call_compliance_specialist(state: LegalState) -> dict:
         "You are a senior regulatory compliance officer with expertise in SEC enforcement, "
         "SOX compliance, FTC regulations, FCPA, AML/BSA, GDPR, CCPA, and corporate governance. "
         "Use the search_compliance_law tool to ground your analysis. Keep your response under 200 words."
+        + VIETNAMESE_RESPONSE_INSTRUCTION
     )
 
     llm = get_llm()
@@ -233,6 +255,22 @@ async def call_compliance_specialist(state: LegalState) -> dict:
     final_msg = result["messages"][-1].content
     print(f"  [Node: call_compliance_specialist] Done ({len(final_msg)} chars)")
     return {"compliance_result": final_msg}
+
+
+async def privacy_agent(state: LegalState) -> dict:
+    """Specialist agent for GDPR and personal-data protection."""
+    print("\n  [Node: privacy_agent] Privacy specialist agent starting...")
+    llm = get_llm()
+    prompt = f"""Bạn là chuyên gia về GDPR và luật bảo vệ dữ liệu cá nhân.
+
+Câu hỏi gốc: {state['question']}
+Phân tích pháp lý: {state.get('law_analysis', 'N/A')}
+
+Hãy phân tích các vấn đề về privacy và GDPR (nếu có). Giữ câu trả lời dưới 200 từ.
+""" + VIETNAMESE_RESPONSE_INSTRUCTION
+    response = await llm.ainvoke([HumanMessage(content=prompt)])
+    print(f"  [Node: privacy_agent] Done ({len(response.content)} chars)")
+    return {"privacy_result": response.content}
 
 
 async def aggregate(state: LegalState) -> dict:
@@ -247,6 +285,8 @@ async def aggregate(state: LegalState) -> dict:
         sections.append(f"## Tax Analysis\n{state['tax_result']}")
     if state.get("compliance_result"):
         sections.append(f"## Regulatory Compliance Analysis\n{state['compliance_result']}")
+    if state.get("privacy_result"):
+        sections.append(f"## Privacy Analysis\n{state['privacy_result']}")
 
     combined = "\n\n---\n\n".join(sections)
 
@@ -257,6 +297,7 @@ async def aggregate(state: LegalState) -> dict:
                 "comprehensive, well-structured response. Combine the following analyses "
                 "into a cohesive answer with clear sections. Avoid redundancy. "
                 "Keep your response under 500 words."
+                + VIETNAMESE_RESPONSE_INSTRUCTION
             )
         ),
         HumanMessage(content=combined),
@@ -278,6 +319,7 @@ def create_graph():
     graph.add_node("check_routing", check_routing)
     graph.add_node("call_tax_specialist", call_tax_specialist)
     graph.add_node("call_compliance_specialist", call_compliance_specialist)
+    graph.add_node("privacy_agent", privacy_agent)
     graph.add_node("aggregate", aggregate)
 
     graph.set_entry_point("analyze_law")
@@ -285,16 +327,25 @@ def create_graph():
     graph.add_conditional_edges(
         "check_routing",
         route_to_specialists,
-        ["call_tax_specialist", "call_compliance_specialist", "aggregate"],
+        [
+            "call_tax_specialist",
+            "call_compliance_specialist",
+            "privacy_agent",
+            "aggregate",
+        ],
     )
     graph.add_edge("call_tax_specialist", "aggregate")
     graph.add_edge("call_compliance_specialist", "aggregate")
+    graph.add_edge("privacy_agent", "aggregate")
     graph.add_edge("aggregate", END)
 
     return graph.compile()
 
 
-QUESTION = "If a company breaks a contract and avoids taxes, what are the legal and regulatory consequences?"
+QUESTION = (
+    "A company leaked customer data, failed GDPR compliance, and avoided taxes. "
+    "What are the legal, privacy, tax, and regulatory consequences?"
+)
 
 
 async def main():
@@ -305,11 +356,14 @@ async def main():
     print("[How it works]")
     print("  1. Lead attorney agent analyses the question")
     print("  2. Router decides which specialist agents are needed")
-    print("  3. Tax + Compliance specialists run IN PARALLEL (LangGraph Send API)")
+    print("  3. Tax + Compliance + Privacy specialists run IN PARALLEL (Send API)")
     print("  4. Aggregator combines all analyses into a final answer")
     print()
     print("[Graph topology]")
-    print("  analyze_law -> check_routing -> [call_tax + call_compliance] -> aggregate -> END")
+    print(
+        "  analyze_law -> check_routing -> "
+        "[call_tax + call_compliance + privacy] -> aggregate -> END"
+    )
     print()
     print(f"Question: {QUESTION}")
     print("-" * 70)
@@ -321,8 +375,10 @@ async def main():
         "law_analysis": "",
         "needs_tax": False,
         "needs_compliance": False,
+        "needs_privacy": False,
         "tax_result": "",
         "compliance_result": "",
+        "privacy_result": "",
         "final_answer": "",
     })
 

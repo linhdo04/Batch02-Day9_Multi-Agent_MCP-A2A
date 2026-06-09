@@ -9,6 +9,7 @@ from __future__ import annotations
 from langgraph.prebuilt import create_react_agent
 
 from common.llm import get_llm
+from common.prompts import VIETNAMESE_RESPONSE_INSTRUCTION
 
 TAX_SYSTEM_PROMPT = """You are a specialist tax attorney and CPA with expertise in:
 
@@ -22,17 +23,16 @@ TAX_SYSTEM_PROMPT = """You are a specialist tax attorney and CPA with expertise 
 - Corporate tax liability: officers, directors, and responsible persons
 - Voluntary disclosure programs and settlement options
 
-When answering, be precise about:
+Answer concisely in no more than 180 words. Be precise about:
 1. Civil vs. criminal penalties and their monetary ranges
 2. Statute of limitations for tax fraud (6 years for substantial omission,
    unlimited for fraudulent returns)
 3. Which government agencies are involved (IRS, DOJ Tax Division, FinCEN)
-4. The distinction between the company's liability and individual liability
-   for executives who directed the evasion
+4. The distinction between company and individual executive liability
 
-Always note that your response is for educational purposes and the user
-should consult a licensed attorney for specific legal advice.
-"""
+Use short bullets, avoid repeating the question, and end with a one-sentence
+educational-purpose disclaimer.
+""" + VIETNAMESE_RESPONSE_INSTRUCTION
 
 
 def create_graph():

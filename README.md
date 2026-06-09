@@ -140,8 +140,25 @@ No servers needed — each demo runs as a standalone script:
 uv run python stages/stage_1_direct_llm/main.py
 uv run python stages/stage_2_rag_tools/main.py
 uv run python stages/stage_3_single_agent/main.py
-uv run python stages/stage_4_multi_agent/main.py
+uv run python stages/stage_4_milti_agent/main.py
 ```
+
+### Run the Stage 5 Web Demo
+
+The demo UI connects to the distributed Stage 5 services:
+
+```bash
+# Terminal 1: start Registry and all A2A agents
+./start_all.sh
+
+# Terminal 2: start the web UI
+uv run python -m demo_ui
+
+# Open http://localhost:8080
+```
+
+The interface displays agent status, routing decisions, execution events,
+trace ID, end-to-end latency, and the final aggregated answer.
 
 ## LLM Evolution Stages
 
@@ -176,12 +193,13 @@ legal_multiagent/
 ├── law_agent/                 # Legal orchestrator (port 10101)
 ├── tax_agent/                 # Tax specialist (port 10102)
 ├── compliance_agent/          # Compliance specialist (port 10103)
+├── demo_ui/                   # Stage 5 A2A interaction web demo (port 8080)
 │
 ├── stages/                    # Progressive learning demos (1-4)
 │   ├── stage_1_direct_llm/
 │   ├── stage_2_rag_tools/
 │   ├── stage_3_single_agent/
-│   └── stage_4_multi_agent/
+│   └── stage_4_milti_agent/
 │
 └── docs/                      # Architecture diagrams (SVG)
 ```
@@ -196,7 +214,8 @@ Each agent module follows the same structure:
 | Environment Variable | Description | Default |
 |---|---|---|
 | `OPENROUTER_API_KEY` | Your OpenRouter API key | (required) |
-| `OPENROUTER_MODEL` | Model identifier | `anthropic/claude-sonnet-4-5` |
+| `OPENROUTER_MODEL` | Model identifier | `openai/gpt-oss-120b:free` |
+| `OPENROUTER_MAX_TOKENS` | Maximum output tokens per LLM call | `1024` |
 | `REGISTRY_URL` | Registry service URL | `http://localhost:10000` |
 
 The model is swappable to any OpenRouter-supported model (e.g., `openai/gpt-4o`, `google/gemini-2.0-flash`).

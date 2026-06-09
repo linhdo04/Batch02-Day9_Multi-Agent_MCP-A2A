@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Legal Agent Control Room</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <div class="ambient ambient-one"></div>
+  <div class="ambient ambient-two"></div>
+
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">LA</div>
+        <div>
+          <p class="eyebrow">A2A PROTOCOL LAB</p>
+          <h1>Legal Agent Control Room</h1>
+        </div>
+      </div>
+      <div class="system-pill"><span class="pulse"></span> Demo console online</div>
+    </header>
+
+    <section class="hero">
+      <div>
+        <p class="eyebrow">DISTRIBUTED A2A ORCHESTRATION</p>
+        <h2>Quan sát các agent phối hợp<br>theo thời gian thực.</h2>
+        <p class="hero-copy">
+          Theo dõi request đi qua Registry, Customer Agent, Law Agent và các
+          chuyên gia Tax/Compliance trong hệ thống Stage 5 phân tán.
+        </p>
+      </div>
+      <div class="metric-card">
+        <span>Execution latency</span>
+        <strong id="latency">--</strong>
+        <small id="traceId">Chưa có trace</small>
+      </div>
+    </section>
+
+    <section class="workspace">
+      <aside class="control-panel panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">REQUEST BUILDER</p>
+            <h3>Khởi chạy demo</h3>
+          </div>
+        </div>
+
+        <div class="architecture-card">
+          <span>Stage 5</span>
+          <strong>Distributed A2A</strong>
+          <small>Registry · HTTP services · Dynamic discovery</small>
+        </div>
+
+        <label class="field-label" for="question">Câu hỏi pháp lý</label>
+        <textarea id="question" rows="8">Một công ty làm rò rỉ dữ liệu khách hàng, vi phạm GDPR và trốn thuế. Công ty có thể phải chịu những hậu quả pháp lý, quyền riêng tư, thuế và tuân thủ nào?</textarea>
+
+        <div class="examples">
+          <button data-question="Một công ty trốn thuế và làm giả báo cáo tài chính nộp cho SEC. Công ty có thể phải chịu hậu quả gì?">Thuế + SEC</button>
+          <button data-question="Một công ty làm rò rỉ dữ liệu khách hàng và vi phạm GDPR. Công ty cần xử lý như thế nào?">Quyền riêng tư</button>
+          <button data-question="Những biện pháp khắc phục nào được áp dụng khi nhà cung cấp vi phạm hợp đồng?">Hợp đồng</button>
+        </div>
+
+        <button id="runButton" class="run-button">
+          <span>Chạy hệ thống A2A</span>
+          <span class="run-arrow">→</span>
+        </button>
+        <p class="stage-note">
+          Cần chạy <code>./start_all.sh</code> trước khi gửi câu hỏi.
+        </p>
+      </aside>
+
+      <section class="visual-panel panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">LIVE TOPOLOGY</p>
+            <h3>Agent interaction map</h3>
+          </div>
+          <span id="runStatus" class="status-badge idle">Idle</span>
+        </div>
+
+        <div class="topology" id="topology">
+          <div class="flow-line line-a"></div>
+          <div class="flow-line line-b"></div>
+          <div class="flow-line line-c"></div>
+          <div class="flow-line line-d"></div>
+          <div class="flow-line line-e"></div>
+
+          <article class="agent-card registry-card" data-agent="registry">
+            <div class="agent-icon">RG</div>
+            <div><strong>Registry</strong><small>Service discovery</small></div>
+            <span class="agent-state">Standby</span>
+          </article>
+
+          <article class="agent-card customer-card" data-agent="customer">
+            <div class="agent-icon">CU</div>
+            <div><strong>Customer Agent</strong><small>A2A entry point</small></div>
+            <span class="agent-state">Standby</span>
+          </article>
+
+          <article class="agent-card law-card" data-agent="law">
+            <div class="agent-icon">LW</div>
+            <div><strong>Law Agent</strong><small>Lead analysis</small></div>
+            <span class="agent-state">Standby</span>
+          </article>
+
+          <article class="agent-card tax-card" data-agent="tax">
+            <div class="agent-icon">TX</div>
+            <div><strong>Tax Agent</strong><small>IRS · FBAR · FATCA</small></div>
+            <span class="agent-state">Standby</span>
+          </article>
+
+          <article class="agent-card compliance-card" data-agent="compliance">
+            <div class="agent-icon">CP</div>
+            <div><strong>Compliance</strong><small>SEC · SOX · FCPA</small></div>
+            <span class="agent-state">Standby</span>
+          </article>
+
+        </div>
+      </section>
+    </section>
+
+    <section class="output-grid">
+      <article class="panel timeline-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">EVENT STREAM</p>
+            <h3>Execution timeline</h3>
+          </div>
+          <button id="clearButton" class="text-button">Clear</button>
+        </div>
+        <div id="timeline" class="timeline">
+          <div class="empty-state">Run a request to inspect agent events.</div>
+        </div>
+      </article>
+
+      <article class="panel answer-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">FINAL OUTPUT</p>
+            <h3>Legal analysis</h3>
+          </div>
+        </div>
+        <div id="answer" class="answer">
+          <div class="empty-state">The aggregated answer will appear here.</div>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

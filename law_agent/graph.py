@@ -18,6 +18,7 @@ from langgraph.constants import Send
 from langgraph.graph import END, StateGraph
 
 from common.llm import get_llm
+from common.prompts import VIETNAMESE_RESPONSE_INSTRUCTION
 
 logger = logging.getLogger(__name__)
 
@@ -60,6 +61,7 @@ async def analyze_law(state: LawState) -> dict:
                 "You are a senior corporate litigation attorney specialising in contract law, "
                 "tort law, and general business law. Analyse the legal aspects of the question "
                 "thoroughly, covering relevant statutes, case law principles, and liability exposure."
+                + VIETNAMESE_RESPONSE_INSTRUCTION
             )
         ),
         HumanMessage(content=state["question"]),
@@ -196,6 +198,7 @@ async def aggregate(state: LawState) -> dict:
                 "analyses into a cohesive answer with clear sections. Avoid redundancy. "
                 "End with a brief disclaimer that the analysis is educational and the client "
                 "should consult licensed attorneys for their specific situation."
+                + VIETNAMESE_RESPONSE_INSTRUCTION
             )
         ),
         HumanMessage(content=combined),
